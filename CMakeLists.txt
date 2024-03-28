@@ -1,7 +1,6 @@
 ﻿cmake_minimum_required(VERSION 3.0)
 project(skeleton_libretro)
 
-
 # Set the default platform
 if(NOT platform)
     if(UNIX)
@@ -60,18 +59,14 @@ else()
 endif()
 
 # Set the target name
-set(TARGET_NAME "skeleton")
+set(LIBRARY_TARGET_NAME "skeleton")
+set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/link.T")
 
 # Set target specific properties based on platform
 if(platform STREQUAL "unix")
-    set(TARGET "${TARGET_NAME}_libretro.${EXT}")
-    set(SHARED "-shared -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/link.T -Wl,--no-undefined")
-elseif(platform STREQUAL "osx")
-    set(TARGET "${TARGET_NAME}_libretro.dylib")
-    set(SHARED "-dynamiclib")
+    add_compile_options(-Wall --no-undefined)
 elseif(platform STREQUAL "win")
-    set(TARGET "${TARGET_NAME}_libretro.dll")
-    set(SHARED "-shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/link.T -Wl,--no-undefined")
+    add_compile_options(-static-libgcc -static-libstdc++ -s -W4 --no-undefined)
 endif()
 
 # Include directories
@@ -81,13 +76,15 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c" "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
 # Build the target
-add_library(${TARGET_NAME} SHARED ${SOURCES})
+add_library(${LIBRARY_TARGET_NAME} SHARED ${SOURCES})
+
+#Linker Script
+set(CMAKE_EXE_LINKER_FLAGS "-T ${LINKER_SCRIPT}")
+set_target_properties(${LIBRARY_TARGET_NAME} PROPERTIES PREFIX "")
+set_source_files_properties(${CMAKE_SOURCE_DIR}libretro.c PROPERTIES OBJECT_DEPENDS ${LINKER_SCRIPT})
 
 # Link libraries
-target_link_libraries(${TARGET_NAME} ${LIBM})
-
-# Set target properties
-set_target_properties(${TARGET_NAME} PROPERTIES OUTPUT_NAME ${TARGET})
+target_link_libraries(${LIBRARY_TARGET_NAME} ${LIBM})
 
 # Installation
-install(TARGETS ${TARGET_NAME} DESTINATION lib)
+install(TARGETS ${LIBRARY_TARGET_NAME} DESTINATION lib)
