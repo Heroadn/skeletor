@@ -1,6 +1,7 @@
 ﻿cmake_minimum_required(VERSION 3.0)
 project(skeleton_libretro)
 
+
 # Set the default platform
 if(NOT platform)
     if(UNIX)
